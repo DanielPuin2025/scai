@@ -3,6 +3,7 @@ services:
     name: scai-megacolegio
     runtime: node
     plan: free
+    rootDir: ./
     buildCommand: npm ci && npm run build
     startCommand: node .output/server/index.mjs
     envVars:
