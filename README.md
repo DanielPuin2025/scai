@@ -62,13 +62,8 @@ cp .env.example .env
 
 # Iniciar en desarrollo
 npm run dev
-```
 
-El sistema estará disponible en `http://localhost:3000`
 
-## 🛠️ Desarrollo
-
-```bash
 # Desarrollo con hot reload
 npm run dev
 
@@ -83,67 +78,3 @@ npm run lint
 
 # Formatear código
 npm run format
-```
-
-## 📦 Stack Tecnológico
-
-- **Frontend:** React 19 + TypeScript
-- **Routing:** TanStack Router (SSR)
-- **Backend:** TanStack Start server functions
-- **Base de datos:** Supabase (PostgreSQL)
-- **Estilos:** Tailwind CSS 4
-- **Componentes UI:** shadcn/ui
-- **PWA:** vite-plugin-pwa
-- **Validación:** Zod
-- **Build:** Vite 8
-
-## 📱 Funcionalidad Offline
-
-El sistema cuenta con:
-- Service Worker para funcionar sin conexión
-- Cola de sincronización automática
-- Almacenamiento local de registros pendientes
-- Indicadores visuales de estado de conexión
-
-## 🗂️ Estructura del Proyecto
-
-```
-src/
-├── routes/              # Páginas de la aplicación
-├── components/          # Componentes React
-├── lib/                 # Lógica de negocio y funciones
-├── hooks/               # React hooks personalizados
-└── integrations/        # Integraciones (Supabase)
-```
-
-Ver [PROYECTO-ESTRUCTURA.md](./PROYECTO-ESTRUCTURA.md) para más detalles.
-
-## 🔒 Seguridad
-
-- Autenticación con Supabase Auth
-- Row Level Security (RLS) en base de datos
-- Validación de datos con Zod
-- Índices únicos para prevenir duplicados
-- Códigos de acceso (deben estar en variables de entorno en producción)
-
-## 📝 Licencia
-
-Proyecto desarrollado para el Megacolegio El Progreso.
-
-## 🤝 Contribución
-
-Para contribuir al proyecto:
-1. Fork el repositorio
-2. Crea una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -am 'Añade nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Crea un Pull Request
-
-## 📞 Soporte
-
-Para soporte técnico o consultas, contacta al equipo de desarrollo del Megacolegio El Progreso.
-
----
-
-**SCAI v2.0** - Sistema de Control de Acceso Institucional
-

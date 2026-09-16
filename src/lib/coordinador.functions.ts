@@ -35,7 +35,7 @@ export type EstudianteRow = {
 
 export const listarEstudiantes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => listarInput.parse(data))
+  .validator((data: unknown) => listarInput.parse(data))
   .handler(async ({ data, context }) => {
     const PAGE = 25;
     let query = context.supabase
@@ -120,7 +120,7 @@ export type ResumenGrado = {
 
 export const resumenGrado = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ grado: z.string().trim().min(1).max(30) }).parse(data))
+  .validator((data: unknown) => z.object({ grado: z.string().trim().min(1).max(30) }).parse(data))
   .handler(async ({ data, context }): Promise<ResumenGrado> => {
     const { data: alumnos } = await context.supabase.from("estudiantes").select("id").eq("grado", data.grado);
     const ids = (alumnos ?? []).map((a) => a.id);
@@ -150,7 +150,7 @@ export const resumenGrado = createServerFn({ method: "POST" })
 
 export const guardarEstudiante = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => estudianteInput.parse(data))
+  .validator((data: unknown) => estudianteInput.parse(data))
   .handler(async ({ data, context }) => {
     const payload = {
       codigo_sis: data.codigo_sis,
@@ -180,7 +180,7 @@ export const guardarEstudiante = createServerFn({ method: "POST" })
 /** No se elimina información: el estudiante se archiva (inactivo) conservando todo su historial. */
 export const cambiarEstadoEstudiante = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid(), activo: z.boolean() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string().uuid(), activo: z.boolean() }).parse(data))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("estudiantes").update({ activo: data.activo }).eq("id", data.id);
     if (error) return { ok: false as const, error: "No se pudo cambiar el estado del estudiante" };
@@ -190,7 +190,7 @@ export const cambiarEstadoEstudiante = createServerFn({ method: "POST" })
 /** Cierre de año escolar: archiva a los estudiantes activos sin borrar faltas ni fechas. */
 export const cerrarAnioEscolar = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z.object({ grado: z.string().trim().max(30).optional(), confirmacion: z.literal("ARCHIVAR") }).parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -227,7 +227,7 @@ const reporteInput = z.object({
 
 export const obtenerReporte = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => reporteInput.parse(data))
+  .validator((data: unknown) => reporteInput.parse(data))
   .handler(async ({ data, context }): Promise<Reporte> => {
     const desde = data.desde ?? new Date(Date.now() - data.dias * 86400000).toISOString().slice(0, 10);
     const hasta = data.hasta ?? new Date().toISOString().slice(0, 10);
@@ -368,7 +368,7 @@ export type ConsultaRespuesta =
 
 export const consultarEstudiante = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z
       .object({
         termino: z.string().trim().max(80).optional(),
@@ -461,7 +461,7 @@ export type ObservacionRow = {
 
 export const listarObservaciones = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ estudiante_id: z.string().uuid() }).parse(data))
+  .validator((data: unknown) => z.object({ estudiante_id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }): Promise<ObservacionRow[]> => {
     const { data: rows } = await context.supabase
       .from("observaciones")
@@ -474,7 +474,7 @@ export const listarObservaciones = createServerFn({ method: "POST" })
 
 export const guardarObservacion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z
       .object({
         id: z.string().uuid().optional(),
@@ -501,7 +501,7 @@ export const guardarObservacion = createServerFn({ method: "POST" })
 
 export const eliminarObservacion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("observaciones").delete().eq("id", data.id);
     if (error) return { ok: false as const, error: "No se pudo eliminar la observación" };

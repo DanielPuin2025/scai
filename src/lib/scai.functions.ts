@@ -120,7 +120,7 @@ async function detalle(est: {
 
 /** Búsqueda flexible: código, identificación, nombre, apellido, nombre + apellido y/o grado. */
 export const buscarEstudiantes = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) =>
+  .validator((data: unknown) =>
     z
       .object({ q: z.string().trim().max(80).optional(), grado: z.string().trim().max(30).optional() })
       .refine((v) => Boolean((v.q && v.q.length > 0) || v.grado), { message: "Escribe un dato o elige un grado" })
@@ -150,7 +150,7 @@ export const buscarEstudiantes = createServerFn({ method: "POST" })
   });
 
 export const obtenerEstudiante = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data }): Promise<EstudiantePublico | null> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: filas } = await supabaseAdmin.from("estudiantes").select(COLUMNAS).eq("id", data.id).limit(1);
@@ -159,14 +159,14 @@ export const obtenerEstudiante = createServerFn({ method: "POST" })
   });
 
 export const buscarEstudiante = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => buscarInput.parse(data))
+  .validator((data: unknown) => buscarInput.parse(data))
   .handler(async ({ data }): Promise<EstudiantePublico | null> => {
     const est = await buscarPorCodigo(data.codigo);
     return est ? detalle(est) : null;
   });
 
 export const registrarFaltas = createServerFn({ method: "POST" })
-  .inputValidator((data: unknown) => faltaInput.parse(data))
+  .validator((data: unknown) => faltaInput.parse(data))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const est = await buscarPorCodigo(data.codigo);
@@ -207,7 +207,13 @@ export const registrarFaltas = createServerFn({ method: "POST" })
         { onConflict: "estudiante_id,tipo,fecha", ignoreDuplicates: true },
       );
 
-    if (error) return { ok: false as const, error: "No se pudieron guardar las faltas" };
+    if (error) {
+      console.error("Error guardando faltas:", error);
+      return {
+        ok: false as const,
+        error: `No se pudieron guardar las faltas: ${error.message || "Error desconocido"}`
+      };
+    }
     return {
       ok: true as const,
       fecha,
