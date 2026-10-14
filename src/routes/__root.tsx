@@ -6,12 +6,15 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "../components/ui/sonner";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AparienciaProvider, aparienciaQueryOptions } from "../lib/apariencia-context";
+import { aparienciaDefault } from "../lib/apariencia";
 
 function NotFoundComponent() {
   return (
@@ -35,7 +38,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -102,6 +105,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", href: "/favicon.png", type: "image/png" },
     ],
   }),
+  loader: async ({ context }) => {
+    try {
+      return await context.queryClient.ensureQueryData(aparienciaQueryOptions);
+    } catch {
+      return { config: aparienciaDefault };
+    }
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -125,6 +135,8 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const loaderData = Route.useLoaderData() as { config?: typeof aparienciaDefault } | undefined;
+  const config = loaderData?.config ?? aparienciaDefault;
 
   useEffect(() => {
     void import("../lib/pwa").then((m) => m.setupPWA());
@@ -132,9 +144,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
-      <Toaster position="top-center" richColors />
+      <AparienciaProvider inicial={config}>
+        {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+        <Outlet />
+        <Toaster position="top-center" richColors />
+      </AparienciaProvider>
     </QueryClientProvider>
   );
 }

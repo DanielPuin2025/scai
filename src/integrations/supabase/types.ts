@@ -106,6 +106,7 @@ export type Database = {
           estudiante_id: string
           fecha: string
           id: string
+          jornada_id: string | null
           observacion: string | null
           registrado_por: string | null
           tipo: Database["public"]["Enums"]["falta_tipo"]
@@ -115,6 +116,7 @@ export type Database = {
           estudiante_id: string
           fecha?: string
           id?: string
+          jornada_id?: string | null
           observacion?: string | null
           registrado_por?: string | null
           tipo: Database["public"]["Enums"]["falta_tipo"]
@@ -124,6 +126,7 @@ export type Database = {
           estudiante_id?: string
           fecha?: string
           id?: string
+          jornada_id?: string | null
           observacion?: string | null
           registrado_por?: string | null
           tipo?: Database["public"]["Enums"]["falta_tipo"]
@@ -136,7 +139,80 @@ export type Database = {
             referencedRelation: "estudiantes"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "faltas_jornada_id_fkey"
+            columns: ["jornada_id"]
+            isOneToOne: false
+            referencedRelation: "jornadas"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      horario_control: {
+        Row: {
+          created_at: string
+          hora_fin: string
+          hora_inicio: string
+          hora_puntual_hasta: string
+          hora_tarde_desde: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hora_fin?: string
+          hora_inicio?: string
+          hora_puntual_hasta?: string
+          hora_tarde_desde?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hora_fin?: string
+          hora_inicio?: string
+          hora_puntual_hasta?: string
+          hora_tarde_desde?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      jornadas: {
+        Row: {
+          created_at: string
+          encargado_grado: string
+          encargado_nombre: string
+          estado: string
+          fecha: string
+          hora_fin: string
+          hora_inicio: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          encargado_grado: string
+          encargado_nombre: string
+          estado?: string
+          fecha?: string
+          hora_fin: string
+          hora_inicio: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          encargado_grado?: string
+          encargado_nombre?: string
+          estado?: string
+          fecha?: string
+          hora_fin?: string
+          hora_inicio?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       observaciones: {
         Row: {

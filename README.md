@@ -1,80 +1,72 @@
 # SCAI - Sistema de Control de Acceso Institucional
 
-Sistema web moderno para el control de acceso y registro de faltas de estudiantes del **Megacolegio El Progreso**.
+Sistema de Control de Acceso Institucional del Megacolegio El Progreso.
 
-## 🎯 Características Principales
+## Desarrollo local
 
-- ✅ **Acceso por código único** para 3 tipos de usuarios
-- ✅ **Funciona sin internet** (PWA con sincronización automática)
-- ✅ **Registro rápido** optimizado para la entrada del colegio
-- ✅ **Panel completo de gestión** para coordinadores
-- ✅ **Consulta de historial** para estudiantes
-- ✅ **Interfaz moderna y responsiva**
+Abre en Visual Studio Code la carpeta raíz que contiene `package.json`. Copia
+`.env.example` como `.env`, configura las variables públicas del proyecto
+Supabase y ejecuta:
 
-## 👥 Tipos de Usuario
-
-### 🔐 Coordinador
-**Código de acceso:** `COORD2024`
-
-Acceso completo al sistema con autenticación:
-- Gestión de estudiantes (crear, editar, archivar)
-- Registro de faltas
-- Reportes y estadísticas
-- Cierre de año escolar
-
-### 🚪 Encargado
-**Código de acceso:** `ENCARG2024`
-
-Registro rápido en la entrada:
-- Búsqueda rápida por código de estudiante
-- Registro instantáneo de llegadas tarde y uniforme
-- Funciona sin conexión
-- Interfaz optimizada para no congestionar el ingreso
-
-### 🎓 Estudiante
-**Código de acceso:** Su código SIS personal
-
-Consulta de historial personal:
-- Visualización de llegadas tarde
-- Visualización de faltas de uniforme
-- Resumen total de faltas
-- Solo lectura (sin permisos de registro)
-
-## 🚀 Inicio Rápido
-
-### Requisitos
-- Node.js 18+ y npm
-- Cuenta de Supabase (para base de datos)
-
-### Instalación
-
-```bash
-# Clonar el repositorio
-git clone <repository-url>
-cd SCAI-proyecto
-
-# Instalar dependencias
+```sh
 npm install
-
-# Configurar variables de entorno
-cp .env.example .env
-# Editar .env con tus credenciales de Supabase
-
-# Iniciar en desarrollo
 npm run dev
+```
 
+Consulta [INSTALACION.md](./INSTALACION.md) para la guía de variables de entorno,
+Supabase, PWA, uso offline y estructura.
 
-# Desarrollo con hot reload
-npm run dev
+## Despliegue en VPS
 
-# Compilar para producción
-npm run build
+La configuración de producción usa Docker Compose, Caddy y HTTPS automático
+para `scai.programamega.com`. Supabase sigue siendo el servicio de base de datos;
+no se instala ni se publica una base de datos dentro del VPS.
 
-# Vista previa de producción
-npm run preview
+1. Configura un registro DNS `A` para `scai.programamega.com` con la IPv4 pública
+   del VPS. Si existe un registro `AAAA`, debe apuntar a una IPv6 funcional del VPS.
+2. Instala Docker Engine y el plugin Docker Compose en el VPS. Asegúrate de que
+   los puertos TCP `80` y `443` estén permitidos en el firewall y disponibles para Caddy.
+3. Clona el repositorio en el VPS, entra en la carpeta que contiene `compose.yaml`
+   y crea `.env` desde la plantilla:
 
-# Linting
-npm run lint
+   ```sh
+   cp .env.example .env
+   ```
 
-# Formatear código
-npm run format
+4. Completa en `.env` las seis variables `VITE_SUPABASE_*` y `SUPABASE_*` con
+   los datos del mismo proyecto Supabase. No configures una clave secreta en
+   variables `VITE_*`. `SUPABASE_SERVICE_ROLE_KEY` solo se define si se necesita
+   una operación de servidor que omita RLS; nunca se expone al navegador.
+5. Inicia el servicio:
+
+   ```sh
+   docker compose up -d --build
+   docker compose logs -f app caddy
+   ```
+
+Caddy solicita y renueva el certificado TLS automáticamente cuando el DNS ya
+resuelve al VPS y los puertos 80/443 son accesibles. Para publicar una versión
+nueva, actualiza el checkout y vuelve a ejecutar `docker compose up -d --build`.
+No subas `.env` al repositorio.
+
+## Built with
+
+- TanStack Start
+- TypeScript
+- React
+- Tailwind CSS
+
+## Actualización de la base de datos (una sola vez)
+
+Los tres paneles (Coordinador, Control Escolar y Estudiante) necesitan las
+tablas y funciones de seguridad del archivo `sql/0002_paneles_usuarios_y_rls.sql`.
+
+1. Entra a tu proyecto de Supabase → **SQL Editor**.
+2. Pega el contenido completo de ese archivo y pulsa **Run**.
+
+Ese archivo crea los usuarios autorizados (`usuarios_panel`), las sesiones
+(`sesiones_panel`), las funciones de ingreso y consulta, y cierra el acceso
+público directo a los datos de los estudiantes. No borra datos existentes.
+
+Después, el coordinador crea los usuarios de Control Escolar y de Horas
+Sociales desde la pestaña **Usuarios** de su panel.

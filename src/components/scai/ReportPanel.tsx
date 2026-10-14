@@ -6,6 +6,7 @@ import { CalendarCheck, ShirtIcon, Timer, Users } from "lucide-react";
 import { contarEstudiantes, listarGrados, obtenerReporte } from "@/lib/coordinador.functions";
 import { FALTA_LABELS, type FaltaTipo } from "@/lib/scai-schemas";
 import { Skeleton } from "@/components/ui/skeleton";
+import { aniosAcademicos, anioPorDefecto, FECHA_MINIMA, limitarFecha } from "@/lib/anios";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,10 +23,11 @@ import {
 const CHART_COLORS = { tarde: "var(--color-chart-1)", uniforme: "var(--color-chart-2)" };
 
 function hoyISO() {
-  return new Date().toISOString().slice(0, 10);
+  // Nunca se muestran fechas anteriores al año mínimo académico (2026).
+  return limitarFecha(new Date().toISOString().slice(0, 10));
 }
 function haceDias(n: number) {
-  return new Date(Date.now() - n * 86400000).toISOString().slice(0, 10);
+  return limitarFecha(new Date(Date.now() - n * 86400000).toISOString().slice(0, 10));
 }
 function formatoFecha(fecha: string | null) {
   if (!fecha) return "—";
@@ -46,6 +48,13 @@ export function ReportPanel() {
   const [tipo, setTipo] = useState("todos");
   const [desde, setDesde] = useState(haceDias(30));
   const [hasta, setHasta] = useState(hoyISO());
+  const [anio, setAnio] = useState(String(anioPorDefecto()));
+
+  function cambiarAnio(valor: string) {
+    setAnio(valor);
+    setDesde(`${valor}-01-01`);
+    setHasta(`${valor}-12-31`);
+  }
   const gradosQuery = useQuery({ queryKey: ["grados"], queryFn: () => grados({ data: undefined }) });
   const totalQuery = useQuery({ queryKey: ["conteo-estudiantes"], queryFn: () => contar({ data: undefined }) });
 
@@ -65,7 +74,22 @@ export function ReportPanel() {
     <div className="space-y-5">
       <section className="rounded-3xl border border-border/60 bg-pastel-blue/60 p-5 shadow-card">
         <h3 className="text-base font-semibold text-card-foreground">Filtros del reporte</h3>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div>
+            <Label htmlFor="r-anio">Año académico</Label>
+            <Select value={anio} onValueChange={cambiarAnio}>
+              <SelectTrigger id="r-anio" className="mt-1 w-full cursor-pointer">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {aniosAcademicos().map((a) => (
+                  <SelectItem key={a} value={String(a)} className="cursor-pointer">
+                    {a}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div>
             <Label htmlFor="r-grado">Grado</Label>
             <Select value={grado} onValueChange={setGrado}>
@@ -97,11 +121,11 @@ export function ReportPanel() {
           </div>
           <div>
             <Label htmlFor="r-desde">Desde</Label>
-            <Input id="r-desde" type="date" value={desde} max={hasta} onChange={(e) => setDesde(e.target.value)} className="mt-1" />
+            <Input id="r-desde" type="date" min={FECHA_MINIMA} value={desde} max={hasta} onChange={(e) => setDesde(e.target.value)} className="mt-1" />
           </div>
           <div>
             <Label htmlFor="r-hasta">Hasta</Label>
-            <Input id="r-hasta" type="date" value={hasta} min={desde} onChange={(e) => setHasta(e.target.value)} className="mt-1" />
+            <Input id="r-hasta" type="date" value={hasta} min={desde > FECHA_MINIMA ? desde : FECHA_MINIMA} onChange={(e) => setHasta(e.target.value)} className="mt-1" />
           </div>
         </div>
 

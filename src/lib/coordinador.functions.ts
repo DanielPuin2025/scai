@@ -2,6 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 import { codigoSchema, normalizarTexto, ordenarGrados } from "./scai-schemas";
+import { normalizarGrado } from "./grados";
+import { ANIO_MINIMO } from "./anios";
+import { horarioInput, type HorarioControl, type Jornada, type RegistroJornada } from "./jornada-schemas";
 
 function limpiar(texto: string) {
   return normalizarTexto(texto).replace(/[%,()]/g, "");
@@ -35,7 +38,7 @@ export type EstudianteRow = {
 
 export const listarEstudiantes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => listarInput.parse(data))
+  .inputValidator((data: unknown) => listarInput.parse(data))
   .handler(async ({ data, context }) => {
     const PAGE = 25;
     let query = context.supabase
@@ -120,7 +123,7 @@ export type ResumenGrado = {
 
 export const resumenGrado = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => z.object({ grado: z.string().trim().min(1).max(30) }).parse(data))
+  .inputValidator((data: unknown) => z.object({ grado: z.string().trim().min(1).max(30) }).parse(data))
   .handler(async ({ data, context }): Promise<ResumenGrado> => {
     const { data: alumnos } = await context.supabase.from("estudiantes").select("id").eq("grado", data.grado);
     const ids = (alumnos ?? []).map((a) => a.id);
@@ -150,7 +153,7 @@ export const resumenGrado = createServerFn({ method: "POST" })
 
 export const guardarEstudiante = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => estudianteInput.parse(data))
+  .inputValidator((data: unknown) => estudianteInput.parse(data))
   .handler(async ({ data, context }) => {
     const payload = {
       codigo_sis: data.codigo_sis,
@@ -180,7 +183,7 @@ export const guardarEstudiante = createServerFn({ method: "POST" })
 /** No se elimina información: el estudiante se archiva (inactivo) conservando todo su historial. */
 export const cambiarEstadoEstudiante = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => z.object({ id: z.string().uuid(), activo: z.boolean() }).parse(data))
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid(), activo: z.boolean() }).parse(data))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("estudiantes").update({ activo: data.activo }).eq("id", data.id);
     if (error) return { ok: false as const, error: "No se pudo cambiar el estado del estudiante" };
@@ -190,7 +193,7 @@ export const cambiarEstadoEstudiante = createServerFn({ method: "POST" })
 /** Cierre de año escolar: archiva a los estudiantes activos sin borrar faltas ni fechas. */
 export const cerrarAnioEscolar = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) =>
+  .inputValidator((data: unknown) =>
     z.object({ grado: z.string().trim().max(30).optional(), confirmacion: z.literal("ARCHIVAR") }).parse(data),
   )
   .handler(async ({ data, context }) => {
@@ -227,7 +230,7 @@ const reporteInput = z.object({
 
 export const obtenerReporte = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => reporteInput.parse(data))
+  .inputValidator((data: unknown) => reporteInput.parse(data))
   .handler(async ({ data, context }): Promise<Reporte> => {
     const desde = data.desde ?? new Date(Date.now() - data.dias * 86400000).toISOString().slice(0, 10);
     const hasta = data.hasta ?? new Date().toISOString().slice(0, 10);
@@ -368,7 +371,7 @@ export type ConsultaRespuesta =
 
 export const consultarEstudiante = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) =>
+  .inputValidator((data: unknown) =>
     z
       .object({
         termino: z.string().trim().max(80).optional(),
@@ -461,7 +464,7 @@ export type ObservacionRow = {
 
 export const listarObservaciones = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => z.object({ estudiante_id: z.string().uuid() }).parse(data))
+  .inputValidator((data: unknown) => z.object({ estudiante_id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }): Promise<ObservacionRow[]> => {
     const { data: rows } = await context.supabase
       .from("observaciones")
@@ -474,7 +477,7 @@ export const listarObservaciones = createServerFn({ method: "POST" })
 
 export const guardarObservacion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) =>
+  .inputValidator((data: unknown) =>
     z
       .object({
         id: z.string().uuid().optional(),
@@ -501,9 +504,318 @@ export const guardarObservacion = createServerFn({ method: "POST" })
 
 export const eliminarObservacion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.from("observaciones").delete().eq("id", data.id);
     if (error) return { ok: false as const, error: "No se pudo eliminar la observación" };
     return { ok: true as const };
+  });
+
+/* ===== Configuración y control de jornada ===== */
+
+export const obtenerHorarioCoordinador = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<HorarioControl> => {
+    const { data } = await context.supabase
+      .from("horario_control")
+      .select("id, hora_inicio, hora_puntual_hasta, hora_tarde_desde, hora_fin, updated_at")
+      .order("updated_at", { ascending: false })
+      .limit(1);
+    const fila = data?.[0];
+    if (fila) return fila as HorarioControl;
+    return {
+      id: "",
+      hora_inicio: "06:00:00",
+      hora_puntual_hasta: "06:00:00",
+      hora_tarde_desde: "06:00:00",
+      hora_fin: "19:00:00",
+      updated_at: new Date().toISOString(),
+    };
+  });
+
+export const guardarHorario = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => horarioInput.parse(data))
+  .handler(async ({ data, context }) => {
+    const { data: existente, error: errorConsulta } = await context.supabase
+      .from("horario_control")
+      .select("id")
+      .order("updated_at", { ascending: false })
+      .limit(1);
+
+    if (errorConsulta) {
+      return {
+        ok: false as const,
+        error: "No se pudo consultar el horario actual",
+      };
+    }
+
+    const ahora = new Date().toISOString();
+
+    if (existente?.[0]) {
+      const { data: actualizado, error } = await context.supabase
+        .from("horario_control")
+        .update({
+          hora_inicio: data.hora_inicio,
+          hora_puntual_hasta: data.hora_puntual_hasta,
+          hora_tarde_desde: data.hora_tarde_desde,
+          hora_fin: data.hora_fin,
+          updated_at: ahora,
+        })
+        .eq("id", existente[0].id)
+        .select(
+          "id, hora_inicio, hora_puntual_hasta, hora_tarde_desde, hora_fin, updated_at",
+        )
+        .single();
+
+      if (error || !actualizado) {
+        return {
+          ok: false as const,
+          error: error?.message || "No se pudo guardar el horario",
+        };
+      }
+
+      const hoy = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "America/Bogota",
+      }).format(new Date());
+      const { error: errorSincronizacion } = await context.supabase
+        .from("jornadas")
+        .update({
+          hora_inicio: data.hora_inicio,
+          hora_fin: data.hora_fin,
+        })
+        .eq("fecha", hoy)
+        .eq("estado", "activa");
+
+      if (errorSincronizacion) {
+        return {
+          ok: false as const,
+          error:
+            "El horario se guardó, pero no se pudo sincronizar con la jornada de hoy",
+        };
+      }
+
+      return {
+        ok: true as const,
+        horario: actualizado as HorarioControl,
+      };
+    }
+
+    const { data: nuevo, error } = await context.supabase
+      .from("horario_control")
+      .insert({
+        hora_inicio: data.hora_inicio,
+        hora_puntual_hasta: data.hora_puntual_hasta,
+        hora_tarde_desde: data.hora_tarde_desde,
+        hora_fin: data.hora_fin,
+        updated_at: ahora,
+      })
+      .select(
+        "id, hora_inicio, hora_puntual_hasta, hora_tarde_desde, hora_fin, updated_at",
+      )
+      .single();
+
+    if (error || !nuevo) {
+      return {
+        ok: false as const,
+        error: error?.message || "No se pudo crear el horario",
+      };
+    }
+
+    const hoy = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/Bogota",
+    }).format(new Date());
+    const { error: errorSincronizacion } = await context.supabase
+      .from("jornadas")
+      .update({
+        hora_inicio: data.hora_inicio,
+        hora_fin: data.hora_fin,
+      })
+      .eq("fecha", hoy)
+      .eq("estado", "activa");
+
+    if (errorSincronizacion) {
+      return {
+        ok: false as const,
+        error:
+          "El horario se guardó, pero no se pudo sincronizar con la jornada de hoy",
+      };
+    }
+
+    return {
+      ok: true as const,
+      horario: nuevo as HorarioControl,
+    };
+  });
+export type JornadaResumen = Jornada & { registros: number };
+
+export const listarJornadas = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ limite: z.number().int().min(1).max(200).default(60) }).parse(data))
+  .handler(async ({ data, context }): Promise<JornadaResumen[]> => {
+    const { data: filas } = await context.supabase
+      .from("jornadas")
+      .select("id, encargado_nombre, encargado_grado, fecha, hora_inicio, hora_fin, estado, created_at")
+      .order("fecha", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(data.limite);
+
+    const jornadas = (filas ?? []) as Jornada[];
+    if (jornadas.length === 0) return [];
+
+    const { data: faltas } = await context.supabase
+      .from("faltas")
+      .select("jornada_id")
+      .in("jornada_id", jornadas.map((j) => j.id));
+
+    const conteo = new Map<string, number>();
+    for (const f of faltas ?? []) {
+      if (!f.jornada_id) continue;
+      conteo.set(f.jornada_id, (conteo.get(f.jornada_id) ?? 0) + 1);
+    }
+
+    return jornadas.map((j) => ({ ...j, registros: conteo.get(j.id) ?? 0 }));
+  });
+
+export const detalleJornada = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) => z.object({ id: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }): Promise<RegistroJornada[]> => {
+    const { data: filas } = await context.supabase
+      .from("faltas")
+      .select("id, tipo, fecha, created_at, estudiantes!inner(nombre, grado, codigo_sis)")
+      .eq("jornada_id", data.id)
+      .order("created_at", { ascending: true })
+      .limit(500);
+
+    type Fila = {
+      id: string;
+      tipo: string;
+      fecha: string;
+      created_at: string;
+      estudiantes: { nombre: string; grado: string; codigo_sis: string } | null;
+    };
+
+    return ((filas ?? []) as unknown as Fila[]).map((f) => ({
+      id: f.id,
+      hora: f.created_at,
+      fecha: f.fecha,
+      tipo: f.tipo as RegistroJornada["tipo"],
+      nombre: f.estudiantes?.nombre ?? "—",
+      grado: f.estudiantes?.grado ?? "—",
+      codigo_sis: f.estudiantes?.codigo_sis ?? "—",
+    }));
+  });
+
+/* ===== Horas sociales agrupadas por encargado ===== */
+
+export type JornadaDetalleEncargado = {
+  id: string;
+  fecha: string;
+  hora_inicio: string;
+  hora_fin: string;
+  estado: string;
+  horas: number;
+  registros: RegistroJornada[];
+};
+
+export type EncargadoHorasSociales = {
+  clave: string;
+  nombre: string;
+  grado: string;
+  totalHoras: number;
+  totalEstudiantes: number;
+  jornadas: JornadaDetalleEncargado[];
+};
+
+/**
+ * Cada jornada COMPLETADA equivale a 1 hora, sin importar cuántos estudiantes
+ * se hayan registrado en ella. Las jornadas se agrupan por encargado usando la
+ * normalización única de grados.
+ */
+export const resumenHorasSociales = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z.object({ anio: z.number().int().min(ANIO_MINIMO).max(ANIO_MINIMO + 50).optional() }).parse(data),
+  )
+  .handler(async ({ data, context }): Promise<EncargadoHorasSociales[]> => {
+    let query = context.supabase
+      .from("jornadas")
+      .select("id, encargado_nombre, encargado_grado, fecha, hora_inicio, hora_fin, estado, created_at")
+      .order("fecha", { ascending: false })
+      .limit(1000);
+
+    if (data.anio) query = query.gte("fecha", `${data.anio}-01-01`).lte("fecha", `${data.anio}-12-31`);
+
+    const { data: filas } = await query;
+    const jornadas = (filas ?? []) as Jornada[];
+    if (jornadas.length === 0) return [];
+
+    const { data: faltas } = await context.supabase
+      .from("faltas")
+      .select("id, tipo, fecha, created_at, jornada_id, estudiantes!inner(nombre, grado, codigo_sis)")
+      .in(
+        "jornada_id",
+        jornadas.map((j) => j.id),
+      )
+      .order("created_at", { ascending: true })
+      .limit(5000);
+
+    type FaltaFila = {
+      id: string;
+      tipo: string;
+      fecha: string;
+      created_at: string;
+      jornada_id: string | null;
+      estudiantes: { nombre: string; grado: string; codigo_sis: string } | null;
+    };
+
+    const porJornada = new Map<string, RegistroJornada[]>();
+    for (const f of ((faltas ?? []) as unknown as FaltaFila[])) {
+      if (!f.jornada_id) continue;
+      const lista = porJornada.get(f.jornada_id) ?? [];
+      lista.push({
+        id: f.id,
+        hora: f.created_at,
+        fecha: f.fecha,
+        tipo: f.tipo as RegistroJornada["tipo"],
+        nombre: f.estudiantes?.nombre ?? "—",
+        grado: f.estudiantes?.grado ?? "—",
+        codigo_sis: f.estudiantes?.codigo_sis ?? "—",
+      });
+      porJornada.set(f.jornada_id, lista);
+    }
+
+    const encargados = new Map<string, EncargadoHorasSociales>();
+    for (const j of jornadas) {
+      const clave = `${normalizarTexto(j.encargado_nombre)}|${normalizarGrado(j.encargado_grado)}`;
+      const actual =
+        encargados.get(clave) ??
+        ({
+          clave,
+          nombre: j.encargado_nombre,
+          grado: j.encargado_grado,
+          totalHoras: 0,
+          totalEstudiantes: 0,
+          jornadas: [],
+        } satisfies EncargadoHorasSociales);
+
+      const registros = porJornada.get(j.id) ?? [];
+      // 1 hora por jornada completada (finalizada), sin importar los registros.
+      const horas = j.estado === "finalizada" ? 1 : 0;
+      actual.totalHoras += horas;
+      actual.totalEstudiantes += new Set(registros.map((r) => r.codigo_sis)).size;
+      actual.jornadas.push({
+        id: j.id,
+        fecha: j.fecha,
+        hora_inicio: j.hora_inicio,
+        hora_fin: j.hora_fin,
+        estado: j.estado,
+        horas,
+        registros,
+      });
+      encargados.set(clave, actual);
+    }
+
+    return Array.from(encargados.values()).sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
   });

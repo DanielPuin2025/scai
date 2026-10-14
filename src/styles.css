@@ -54,9 +54,23 @@
   --color-pastel-orange: var(--pastel-orange);
   --color-pastel-yellow: var(--pastel-yellow);
   --color-pastel-foreground: var(--pastel-foreground);
+  --color-hs-azul: var(--hs-azul);
+  --color-hs-azul-deep: var(--hs-azul-deep);
+  --color-hs-aqua: var(--hs-aqua);
+  --color-hs-aqua-deep: var(--hs-aqua-deep);
+  --color-hs-lavanda: var(--hs-lavanda);
+  --color-hs-lavanda-deep: var(--hs-lavanda-deep);
+  --color-hs-foreground: var(--hs-foreground);
+  --color-hs-deep-foreground: var(--hs-deep-foreground);
+  --color-hs-borde: var(--hs-borde);
   --color-panel-oscuro: var(--panel-oscuro);
   --color-panel-oscuro-soft: var(--panel-oscuro-soft);
   --color-panel-oscuro-foreground: var(--panel-oscuro-foreground);
+  --color-alerta: var(--alerta);
+  --color-alerta-foreground: var(--alerta-foreground);
+  --color-alerta-strong: var(--alerta-strong);
+  --color-jornada: var(--jornada);
+  --color-jornada-foreground: var(--jornada-foreground);
 
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
@@ -123,10 +137,28 @@
   --pastel-yellow: oklch(0.93 0.09 95);
   --pastel-foreground: oklch(0.28 0.06 262);
 
+  /* Paleta de HORAS SOCIALES: blanco + azul / aguamarina / lavanda pastel */
+  --hs-azul: oklch(0.95 0.035 245);
+  --hs-azul-deep: oklch(0.72 0.11 245);
+  --hs-aqua: oklch(0.95 0.045 195);
+  --hs-aqua-deep: oklch(0.7 0.1 195);
+  --hs-lavanda: oklch(0.95 0.04 292);
+  --hs-lavanda-deep: oklch(0.71 0.1 292);
+  --hs-foreground: oklch(0.27 0.06 262);
+  --hs-deep-foreground: oklch(0.99 0.005 250);
+  --hs-borde: oklch(0.88 0.04 245);
+
   /* Panel oscuro de alto contraste (sin transparencia) para listados de faltas */
   --panel-oscuro: oklch(0.27 0.06 262);
   --panel-oscuro-soft: oklch(0.34 0.065 262);
   --panel-oscuro-foreground: oklch(0.97 0.01 250);
+
+  /* Colores fuertes para la jornada de control y sus alertas */
+  --alerta: oklch(0.58 0.22 28);
+  --alerta-strong: oklch(0.49 0.2 24);
+  --alerta-foreground: oklch(0.99 0.01 90);
+  --jornada: oklch(0.55 0.18 300);
+  --jornada-foreground: oklch(0.99 0.01 300);
 
   --gradient-institucional: linear-gradient(
     150deg,
@@ -180,6 +212,20 @@
   --pastel-orange: oklch(0.42 0.08 65);
   --pastel-yellow: oklch(0.44 0.08 95);
   --pastel-foreground: oklch(0.96 0.01 250);
+  --hs-azul: oklch(0.34 0.05 245);
+  --hs-azul-deep: oklch(0.58 0.11 245);
+  --hs-aqua: oklch(0.34 0.05 195);
+  --hs-aqua-deep: oklch(0.56 0.1 195);
+  --hs-lavanda: oklch(0.34 0.05 292);
+  --hs-lavanda-deep: oklch(0.58 0.1 292);
+  --hs-foreground: oklch(0.96 0.01 250);
+  --hs-deep-foreground: oklch(0.15 0.03 262);
+  --hs-borde: oklch(1 0 0 / 14%);
+  --alerta: oklch(0.62 0.21 28);
+  --alerta-strong: oklch(0.54 0.2 24);
+  --alerta-foreground: oklch(0.99 0.01 90);
+  --jornada: oklch(0.6 0.17 300);
+  --jornada-foreground: oklch(0.99 0.01 300);
 }
 
 @layer base {
@@ -213,6 +259,16 @@
 
 @utility shadow-float {
   box-shadow: var(--shadow-float);
+}
+
+@utility bg-alerta {
+  background-image: linear-gradient(140deg, var(--color-alerta) 0%, var(--color-alerta-strong) 100%);
+  color: var(--color-alerta-foreground);
+}
+
+@utility bg-jornada {
+  background-image: linear-gradient(140deg, var(--color-jornada) 0%, var(--color-alerta-strong) 130%);
+  color: var(--color-jornada-foreground);
 }
 
 @utility bg-suave {

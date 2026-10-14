@@ -38,11 +38,11 @@ La terminal mostrará una dirección tipo `http://192.168.1.25:8080`.
 Escribe esa dirección en el celular **conectado al mismo WiFi** del colegio.
 
 Para uso real (varios equipos, sin depender de tu PC) lo mejor es la versión
-publicada: <https://class-entry-flow.lovable.app>
+publicada: <https://social-hours-buddy.lovable.app>
 
 ## 5. Instalar como aplicación (PWA) y uso sin internet
 
-1. Abre la app publicada (`https://class-entry-flow.lovable.app`) en Chrome o Safari.
+1. Abre la app publicada (`https://social-hours-buddy.lovable.app`) en Chrome o Safari.
 2. Menú del navegador → **Instalar aplicación** / **Añadir a pantalla de inicio**.
 3. Ábrela desde el icono SCAI: se ve como una app normal, a pantalla completa.
 
@@ -84,5 +84,6 @@ supabase/                     Configuración de la base de datos
 
 ## 8. Variables de entorno
 
-El archivo `.env` incluido trae las claves públicas de conexión a la base de
-datos; no lo borres o la app no podrá conectarse.
+Copia `.env.example` como `.env` y completa las variables públicas de conexión
+al proyecto Supabase existente. El ZIP no incluye `.env`, contraseñas ni claves
+privadas. Consulta `INSTALACION.md` para la lista completa y las precauciones.

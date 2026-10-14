@@ -10,8 +10,8 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ControlEscolarRouteImport } from './routes/control-escolar'
 import { Route as CoordinadorRouteImport } from './routes/coordinador'
-import { Route as EncargadoRouteImport } from './routes/encargado'
 import { Route as EstudianteRouteImport } from './routes/estudiante'
 
 const IndexRoute = IndexRouteImport.update({
@@ -19,14 +19,14 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ControlEscolarRoute = ControlEscolarRouteImport.update({
+  id: '/control-escolar',
+  path: '/control-escolar',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CoordinadorRoute = CoordinadorRouteImport.update({
   id: '/coordinador',
   path: '/coordinador',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const EncargadoRoute = EncargadoRouteImport.update({
-  id: '/encargado',
-  path: '/encargado',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EstudianteRoute = EstudianteRouteImport.update({
@@ -37,35 +37,35 @@ const EstudianteRoute = EstudianteRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/control-escolar': typeof ControlEscolarRoute
   '/coordinador': typeof CoordinadorRoute
-  '/encargado': typeof EncargadoRoute
   '/estudiante': typeof EstudianteRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/control-escolar': typeof ControlEscolarRoute
   '/coordinador': typeof CoordinadorRoute
-  '/encargado': typeof EncargadoRoute
   '/estudiante': typeof EstudianteRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/control-escolar': typeof ControlEscolarRoute
   '/coordinador': typeof CoordinadorRoute
-  '/encargado': typeof EncargadoRoute
   '/estudiante': typeof EstudianteRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/coordinador' | '/encargado' | '/estudiante'
+  fullPaths: '/' | '/control-escolar' | '/coordinador' | '/estudiante'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/coordinador' | '/encargado' | '/estudiante'
-  id: '__root__' | '/' | '/coordinador' | '/encargado' | '/estudiante'
+  to: '/' | '/control-escolar' | '/coordinador' | '/estudiante'
+  id: '__root__' | '/' | '/control-escolar' | '/coordinador' | '/estudiante'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ControlEscolarRoute: typeof ControlEscolarRoute
   CoordinadorRoute: typeof CoordinadorRoute
-  EncargadoRoute: typeof EncargadoRoute
   EstudianteRoute: typeof EstudianteRoute
 }
 
@@ -78,18 +78,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/control-escolar': {
+      id: '/control-escolar'
+      path: '/control-escolar'
+      fullPath: '/control-escolar'
+      preLoaderRoute: typeof ControlEscolarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/coordinador': {
       id: '/coordinador'
       path: '/coordinador'
       fullPath: '/coordinador'
       preLoaderRoute: typeof CoordinadorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/encargado': {
-      id: '/encargado'
-      path: '/encargado'
-      fullPath: '/encargado'
-      preLoaderRoute: typeof EncargadoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/estudiante': {
@@ -104,8 +104,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ControlEscolarRoute: ControlEscolarRoute,
   CoordinadorRoute: CoordinadorRoute,
-  EncargadoRoute: EncargadoRoute,
   EstudianteRoute: EstudianteRoute,
 }
 export const routeTree = rootRouteImport

@@ -34,6 +34,7 @@ export const faltaInput = z.object({
     .regex(/^\d{4}-\d{2}-\d{2}$/, { message: "Fecha inválida" })
     .optional(),
   hora: z.string().datetime().optional(),
+  jornada_id: z.string().uuid().optional(),
 });
 
 
@@ -47,33 +48,11 @@ export function normalizarTexto(valor: string) {
     .trim();
 }
 
-/** Orden natural de grados reales (1-A, 2-B, 10-C, Transición, ...). */
-export function fechaHoyColombia(fecha = new Date()) {
-  const partes = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Bogota",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).formatToParts(fecha);
-  const valores = Object.fromEntries(partes.map((parte) => [parte.type, parte.value]));
-  return `${valores.year}-${valores.month}-${valores.day}`;
-}
-
-export function compararGrados(a: string, b: string) {
-  const na = /^\s*(\d+)/.exec(a);
-  const nb = /^\s*(\d+)/.exec(b);
-  if (na && nb) {
-    const diff = Number(na[1]) - Number(nb[1]);
-    return diff !== 0 ? diff : a.localeCompare(b, "es");
-  }
-  if (na) return 1; // los no numéricos (Transición, Preescolar) van primero
-  if (nb) return -1;
-  return a.localeCompare(b, "es");
-}
-
-export function ordenarGrados(grados: string[]) {
-  return [...grados].sort(compararGrados);
-}
+/**
+ * Grados: una sola función de normalización para todo el sistema.
+ * Se re-exporta desde aquí para no romper los imports existentes.
+ */
+export { compararGrados, ordenarGrados, normalizarGrado, coincideGrado, resolverGrado } from "./grados";
 
 export type EstudiantePublico = {
   id: string;
@@ -85,16 +64,7 @@ export type EstudiantePublico = {
   tipo_id: string | null;
   faltas: { llegada_tarde: number; mal_uniforme: number; total: number };
   faltasHoy: FaltaTipo[];
-  historial: EstudianteHistorial[];
   asistenciaHoy: boolean;
-};
-
-export type EstudianteHistorial = {
-  id: string;
-  fecha: string;
-  hora: string;
-  tipo: FaltaTipo;
-  observacion: string | null;
 };
 
 export type EstudianteOpcion = {

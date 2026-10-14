@@ -6,13 +6,13 @@ import { Button } from "@/components/ui/button";
 import { registrarFaltas } from "@/lib/scai.functions";
 import { listarPendientes, quitarPendiente, usePendientes } from "@/lib/offline-queue";
 
-export function PendientesBanner() {
+export function PendientesBanner({ token }: { token?: string }) {
   const { items, online, refresh } = usePendientes();
   const faltas = useServerFn(registrarFaltas);
   const [sincronizando, setSincronizando] = useState(false);
 
   async function sincronizar() {
-    if (sincronizando) return;
+    if (sincronizando || !token) return;
     setSincronizando(true);
     let ok = 0;
     for (const p of listarPendientes()) {
@@ -22,7 +22,7 @@ export function PendientesBanner() {
           continue;
         }
         const res = await faltas({
-          data: { codigo: p.codigo, tipos: p.tipos ?? [], fecha: p.fecha, hora: p.hora },
+          data: { token, codigo: p.codigo, tipos: p.tipos ?? [], fecha: p.fecha, hora: p.hora },
         });
         if (res.ok) {
           quitarPendiente(p.id);
@@ -38,9 +38,9 @@ export function PendientesBanner() {
   }
 
   useEffect(() => {
-    if (online && items.length > 0 && !sincronizando) void sincronizar();
+    if (online && token && items.length > 0 && !sincronizando) void sincronizar();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [online, items.length]);
+  }, [online, token, items.length]);
 
   if (online && items.length === 0) return null;
 
@@ -52,7 +52,7 @@ export function PendientesBanner() {
           ? `${items.length} registro(s) pendiente(s) de sincronizar`
           : `Modo sin conexión${items.length ? ` · ${items.length} pendiente(s)` : ""}`}
       </p>
-      {online && items.length > 0 && (
+      {online && token && items.length > 0 && (
         <Button size="sm" variant="secondary" onClick={sincronizar} disabled={sincronizando}>
           {sincronizando ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           Sincronizar

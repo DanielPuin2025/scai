@@ -16,11 +16,6 @@ dist-ssr
 .nitro
 *.local
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars
@@ -30,12 +25,17 @@ dist-ssr
 !.vscode/extensions.json
 .idea
 .DS_Store
+.workspace/
+.claude/
+.opencode
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-.workspace/
-.claude/
-.output/
-.opencode
+
+# Variables de entorno (NUNCA subir claves)
+.env
+.env.local
+.env.*
+!.env.example

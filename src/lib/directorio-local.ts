@@ -101,7 +101,6 @@ export function detalleLocal(id: string, hoy: string): EstudiantePublico | null 
       total: e.llegada_tarde + e.mal_uniforme + extraTarde + extraUniforme,
     },
     faltasHoy,
-    historial: [],
     asistenciaHoy: false,
   };
 }

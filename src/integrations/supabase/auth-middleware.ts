@@ -41,7 +41,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
         ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
         ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
       ];
-      const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Connect Supabase in Lovable Cloud.`;
+      const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Revisa el archivo .env (consulta INSTALACION.md).`;
       console.error(`[Supabase] ${message}`);
       throw new Error(message);
     }
@@ -55,17 +55,7 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     const authHeader = request.headers.get('authorization');
 
     if (!authHeader) {
-      // The application uses a shared institutional access code instead of a
-      // second Supabase login. Keep the middleware available for existing
-      // authenticated sessions, but allow code-based server functions too.
-      const { supabaseAdmin } = await import('./client.server');
-      return next({
-        context: {
-          supabase: supabaseAdmin,
-          userId: '00000000-0000-0000-0000-000000000000',
-          claims: {},
-        },
-      });
+      throw new Error('Unauthorized: No authorization header provided');
     }
 
     if (!authHeader.startsWith('Bearer ')) {

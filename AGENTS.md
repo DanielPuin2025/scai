@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Standalone builds use `npm run build:node` (NITRO_PRESET=node-server); why: the project must run outside Lovable.
+- All DB migrations live in supabase/migrations only; why: one ordered source for fresh Supabase projects.
