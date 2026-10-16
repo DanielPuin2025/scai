@@ -19,6 +19,8 @@ import logo from "@/assets/logo-scai.png";
 export const Route = createFileRoute("/coordinador")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Panel del coordinador · SCAI" },
       {
         name: "description",

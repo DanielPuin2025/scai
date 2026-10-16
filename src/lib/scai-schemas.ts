@@ -74,3 +74,5 @@ export type EstudianteOpcion = {
   grado: string;
   identificacion: string | null;
 };
+
+

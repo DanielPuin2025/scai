@@ -7,6 +7,19 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 import { VitePWA } from "vite-plugin-pwa";
 
+// Valores públicos de respaldo (no secretos): garantizan que cualquier build
+// incluya la conexión aunque el entorno no defina las variables.
+const PUBLIC_SUPABASE = {
+  VITE_SUPABASE_URL: "https://qfzkielofjtixolcbhub.supabase.co",
+  VITE_SUPABASE_PUBLISHABLE_KEY: "sb_publishable_TuAn-5Q7SIEmTydbuoc1Sg_tfhDBctB",
+  VITE_SUPABASE_PROJECT_ID: "qfzkielofjtixolcbhub",
+};
+for (const [k, v] of Object.entries(PUBLIC_SUPABASE)) {
+  if (!process.env[k]) process.env[k] = v;
+  const serverKey = k.replace("VITE_", "");
+  if (!process.env[serverKey]) process.env[serverKey] = process.env[k];
+}
+
 export default defineConfig({
   // Fuera de Lovable: `npm run build:node` define NITRO_PRESET=node-server para
   // generar un servidor Node.js independiente (.output/server/index.mjs).

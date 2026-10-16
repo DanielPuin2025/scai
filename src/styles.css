@@ -279,3 +279,131 @@
     color-mix(in oklab, var(--color-pastel-lavender) 60%, var(--color-background)) 100%
   );
 }
+
+/* Credits: isolated semantic tokens preserve the rest of SCAI's appearance. */
+:root {
+  --equipo-superficie: oklch(0.995 0.002 90);
+  --equipo-tarjeta: oklch(1 0 0);
+  --equipo-azul: oklch(0.36 0.12 262);
+  --equipo-azul-suave: oklch(0.96 0.015 255);
+  --equipo-texto: oklch(0.29 0.06 262);
+  --equipo-secundario: oklch(0.52 0.035 258);
+  --equipo-dorado: oklch(0.72 0.085 83);
+  --equipo-borde: oklch(0.92 0.014 255);
+  --equipo-overlay: oklch(0.18 0.035 262 / 0.48);
+  --equipo-sombra: 0 8px 24px -12px oklch(0.3 0.06 262 / 0.18);
+  --equipo-sombra-modal: 0 24px 80px -24px oklch(0.18 0.04 262 / 0.28);
+}
+
+.scai-creditos {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px 14px;
+  padding: 18px 28px;
+  border-top: 1px solid var(--border);
+  color: var(--muted-foreground);
+  font-size: 11px;
+  line-height: 1.7;
+}
+.scai-creditos p { margin: 0; }
+.scai-equipo-ver { flex-shrink: 0; background: var(--equipo-azul); color: var(--equipo-tarjeta); }
+.scai-equipo-ver:hover { background: color-mix(in oklab, var(--equipo-azul) 90%, var(--equipo-texto)); }
+.scai-equipo-overlay { background: var(--equipo-overlay); }
+.scai-equipo-modal {
+  position: fixed;
+  z-index: 50;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(740px, calc(100% - 32px));
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--equipo-borde);
+  border-radius: 8px;
+  background: var(--equipo-superficie);
+  color: var(--equipo-texto);
+  box-shadow: var(--equipo-sombra-modal);
+  font-family: var(--font-sans);
+}
+.scai-equipo-modal[data-state="open"] { animation: equipo-apertura 200ms ease-out; }
+.scai-equipo-encabezado {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 32px;
+  padding: 26px 0;
+  border-bottom: 1px solid var(--equipo-borde);
+}
+.scai-equipo-icono {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--equipo-borde);
+  border-radius: 8px;
+  background: var(--equipo-azul-suave);
+  color: var(--equipo-azul);
+}
+.scai-equipo-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--equipo-azul);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0;
+}
+.scai-equipo-cerrar { flex-shrink: 0; margin-left: auto; color: var(--equipo-secundario); }
+.scai-equipo-cerrar:hover { background: var(--equipo-azul-suave); color: var(--equipo-azul); }
+.scai-equipo-tarjetas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; padding: 30px 32px; }
+.scai-equipo-tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 28px 18px 26px;
+  text-align: center;
+  border: 1px solid var(--equipo-borde);
+  border-radius: 8px;
+  background: var(--equipo-tarjeta);
+  box-shadow: var(--equipo-sombra);
+}
+.scai-equipo-foto {
+  display: block;
+  width: 184px;
+  height: 184px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--equipo-dorado);
+  padding: 4px;
+  background: var(--equipo-tarjeta);
+}
+.scai-equipo-detalle { width: 28px; height: 2px; margin: 23px 0 17px; background: var(--equipo-dorado); }
+.scai-equipo-tarjeta h3 { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 600; line-height: 1.7; letter-spacing: 0; }
+.scai-equipo-tarjeta p { margin: 10px 0 0; font-size: 11px; font-weight: 500; line-height: 1.6; color: var(--equipo-secundario); }
+.scai-equipo-firma { border-top: 1px solid var(--equipo-borde); padding: 16px 24px; text-align: center; font-size: 10px; line-height: 1.8; color: var(--equipo-secundario); }
+.scai-equipo-firma span { margin: 0 6px; color: var(--equipo-dorado); }
+@keyframes equipo-apertura {
+  from { opacity: 0; transform: translate(-50%, -48%) scale(0.98); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+@media (max-width: 540px) {
+  .scai-creditos { padding: 16px 20px; }
+  .scai-equipo-encabezado { margin: 0 18px; padding: 18px 0; gap: 10px; }
+  .scai-equipo-icono { width: 36px; height: 36px; }
+  .scai-equipo-titulo { font-size: 13px; }
+  .scai-equipo-tarjetas { grid-template-columns: minmax(0, 1fr); padding: 20px; gap: 16px; }
+  .scai-equipo-tarjeta { padding: 20px 16px; }
+  .scai-equipo-foto { width: 142px; height: 142px; }
+  .scai-equipo-detalle { margin: 16px 0 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scai-equipo-modal, .scai-equipo-overlay { animation: none !important; transition: none !important; }
+}

@@ -2,10 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { ClipboardList, GraduationCap, UserCog } from "lucide-react";
 import logo from "@/assets/logo-scai.png";
 import { useApariencia, useTexto } from "@/lib/apariencia-context";
+import { EquipoDesarrollo } from "@/components/scai/EquipoDesarrollo";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "SCAI · Control de acceso — Megacolegio El Progreso" },
       {
         name: "description",
@@ -50,7 +53,7 @@ function Index() {
         : "items-center text-center";
 
   return (
-    <main data-modulo="inicio" className="relative min-h-screen overflow-hidden bg-suave">
+    <main data-modulo="inicio" className="relative flex min-h-screen flex-col overflow-hidden bg-suave">
       {apariencia.visibilidad.mostrarDecoracion ? (
         <>
           <div className="pointer-events-none absolute -left-24 top-0 h-72 w-72 rounded-full bg-pastel-mint/50 blur-3xl" />
@@ -58,7 +61,7 @@ function Index() {
         </>
       ) : null}
 
-      <div className="relative mx-auto flex min-h-screen w-full max-w-5xl flex-col items-center justify-center gap-10 px-5 py-12">
+      <div className="relative mx-auto flex w-full flex-1 max-w-5xl flex-col items-center justify-center gap-10 px-5 py-12">
         <header className={`flex w-full flex-col ${alineacion}`}>
           {apariencia.logo.mostrar ? (
             <img
@@ -127,6 +130,7 @@ function Index() {
           <p className="text-xs text-muted-foreground">{pie}</p>
         ) : null}
       </div>
+      <EquipoDesarrollo />
     </main>
   );
 }

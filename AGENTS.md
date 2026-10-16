@@ -11,3 +11,5 @@
 
 - Standalone builds use `npm run build:node` (NITRO_PRESET=node-server); why: the project must run outside Lovable.
 - All DB migrations live in supabase/migrations only; why: one ordered source for fresh Supabase projects.
+
+- Keep development-team presentation in EquipoDesarrollo with local Radix dialog state and bundled original portraits; why: opening credits must not alter access, session, navigation or require a database.
