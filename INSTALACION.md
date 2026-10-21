@@ -7,7 +7,7 @@ variables de conexión a Supabase.
 
 - Node.js 20 o posterior (<https://nodejs.org>), con npm incluido.
 - Visual Studio Code (opcional).
-- Acceso al proyecto Supabase de SCAI (`project_id = ugjpbnoufbqvkrdkgurd`, ver `supabase/config.toml`).
+- Acceso al proyecto Supabase de SCAI (`project_id = qfzkielofjtixolcbhub`, ver `supabase/config.toml`).
 
 ## Abrir el proyecto
 
@@ -32,6 +32,8 @@ variables de conexión a Supabase.
 | `DATABASE_URL` | Solo `drizzle-kit` (opcional) | Cadena de conexión Postgres, solo si usas drizzle para inspeccionar la base |
 
 Las variables `VITE_*` se incorporan al compilar: si las cambias, vuelve a compilar.
+En el servidor, `SUPABASE_URL` y `SUPABASE_PUBLISHABLE_KEY` son los nombres preferidos;
+si no están definidas, las funciones del servidor pueden usar sus equivalentes `VITE_*`.
 El ZIP incluye un `.env` ya configurado con los valores públicos del proyecto actual (sin claves privadas). `.env` está excluido de git; `.env.example` es la plantilla vacía.
 
 ## Ejecutar en modo desarrollo
@@ -74,13 +76,10 @@ Todas las migraciones están juntas y en orden en `supabase/migrations/`:
   Horas Sociales se aplica siempre el horario vigente del coordinador, por lo que el
   estudiante ve el horario actualizado automáticamente.
 
-**Proyecto Supabase existente (el actual):** no hay que ejecutar nada; la base ya tiene todo.
-Si usas la CLI de Supabase y quieres sincronizar el historial sin reaplicar nada:
-
-```bash
-npx supabase link --project-ref ugjpbnoufbqvkrdkgurd
-npx supabase migration repair --status applied 20260910120000 20260914120000 20260915120000
-```
+**Proyecto Supabase existente (con datos):** no ejecutes `db push` ni `migration repair`
+sin comparar primero el esquema y el historial de migraciones con `supabase/migrations/`.
+`migration repair` solo cambia el historial; no ejecuta ni valida el SQL. Si el historial
+no coincide, reconcilia las migraciones con el esquema existente antes de aplicar cambios.
 
 **Proyecto Supabase nuevo (vacío):**
 
