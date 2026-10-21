@@ -1,33 +1,32 @@
-# Dockerfile para SCAI - Sistema de Control de Acceso Institucional
 FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copiar archivos de dependencias
+# Copiar package files
 COPY package*.json ./
 
 # Instalar dependencias
-RUN npm ci --only=production
+RUN npm ci
 
-# Copiar todo el código fuente
+# Copiar código fuente
 COPY . .
 
-# Construir la aplicación
+# Build
 RUN npm run build
 
-# Etapa de producción
+# Production stage
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Copiar solo lo necesario desde el builder
-COPY --from=builder /app/.output /app/.output
-COPY --from=builder /app/package*.json /app/
+# Copiar archivos necesarios
+COPY --from=builder /app/.output ./.output
+COPY --from=builder /app/package*.json ./
 
 # Instalar solo dependencias de producción
 RUN npm ci --only=production
 
-# Exponer el puerto
+# Exponer puerto
 EXPOSE 3000
 
 # Variables de entorno por defecto
