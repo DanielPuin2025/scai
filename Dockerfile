@@ -1,5 +1,5 @@
 # Dockerfile optimizado para SCAI en EasyPanel
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Instalar dependencias del sistema
 RUN apk add --no-cache python3 make g++
@@ -20,7 +20,7 @@ COPY . .
 RUN npm run build:node
 
 # Etapa de producción
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 

@@ -5,7 +5,7 @@ variables de conexión a Supabase.
 
 ## Requisitos previos
 
-- Node.js 20 o posterior (<https://nodejs.org>), con npm incluido.
+- Node.js 22 o posterior (necesario: Supabase requiere WebSocket nativo) (<https://nodejs.org>), con npm incluido.
 - Visual Studio Code (opcional).
 - Acceso al proyecto Supabase de SCAI (`project_id = qfzkielofjtixolcbhub`, ver `supabase/config.toml`).
 
