@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789069219389,
+      "tag": "0000_acceso_publico_flujo_estudiante",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789425891625,
+      "tag": "0001_horario_control_y_jornadas",
+      "breakpoints": true
+    }
+  ]
+}
