@@ -235,12 +235,27 @@ export const obtenerReporte = createServerFn({ method: "POST" })
     const desde = data.desde ?? new Date(Date.now() - data.dias * 86400000).toISOString().slice(0, 10);
     const hasta = data.hasta ?? new Date().toISOString().slice(0, 10);
 
-    let estudiantesQuery = context.supabase.from("estudiantes").select("id, grado");
-    if (data.grado) estudiantesQuery = estudiantesQuery.eq("grado", data.grado);
+    // PostgREST limita cada respuesta (1000 filas): se pagina para contar todos los estudiantes
+    const cargarEstudiantes = async () => {
+      const todos: { id: string; grado: string }[] = [];
+      for (let desdeFila = 0; ; desdeFila += 1000) {
+        let q = context.supabase
+          .from("estudiantes")
+          .select("id, grado")
+          .order("id")
+          .range(desdeFila, desdeFila + 999);
+        if (data.grado) q = q.eq("grado", data.grado);
+        const { data: lote } = await q;
+        todos.push(...(lote ?? []));
+        if (!lote || lote.length < 1000) break;
+      }
+      return { data: todos };
+    };
+    const estudiantesQuery = cargarEstudiantes();
 
     let faltasQuery = context.supabase
       .from("faltas")
-      .select("fecha, tipo, created_at, estudiantes!inner(nombre, grado, codigo_sis)")
+      .select("fecha, tipo, created_at, estudiantes:estudiantes!faltas_estudiante_id_fkey!inner(nombre, grado, codigo_sis)")
       .gte("fecha", desde)
       .lte("fecha", hasta)
       .order("fecha", { ascending: false })
@@ -683,7 +698,7 @@ export const detalleJornada = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<RegistroJornada[]> => {
     const { data: filas } = await context.supabase
       .from("faltas")
-      .select("id, tipo, fecha, created_at, estudiantes!inner(nombre, grado, codigo_sis)")
+      .select("id, tipo, fecha, created_at, estudiantes:estudiantes!faltas_estudiante_id_fkey!inner(nombre, grado, codigo_sis)")
       .eq("jornada_id", data.id)
       .order("created_at", { ascending: true })
       .limit(500);
